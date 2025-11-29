@@ -1,0 +1,42 @@
+fontes:
+dados estaduais-
+https://www.epe.gov.br/pt/publicacoes-dados-abertos/publicacoes/BEN-Series-Historicas-Completas
+
+
+:https://basedosdados.org/dataset/782c5607-9f69-4e12-b0d5-aa0f1a7a94e2?table=28d16282-d100-4ea8-9dde-36c05c8f1ca2
+
+#############
+#####################################################################################
+# ===================================================================
+# 9) MODELO 2.0 — regressão com log-transform (melhor especificação)
+# ===================================================================
+# Especificação:
+#   log(consumo) = log(carga) + temperatura + bandeira
+#
+# Interpretação:
+#   log-log → elasticidade
+#   temperatura → efeito climático
+#   bandeira → impacto no bolso (preço)
+
+base_modelo <- base_sp_completo |>
+  filter(
+    !is.na(temp_media_mes),
+    !is.na(carga_mwmed),
+    !is.na(nom_bandeira_acionada)
+  ) |>
+  mutate(
+    bandeira    = factor(nom_bandeira_acionada),
+    log_consumo = log(consumo_mwh),
+    log_carga   = log(carga_mwmed)
+  )
+
+modelo2 <- lm(log_consumo ~ log_carga + temp_media_mes + bandeira,
+              data = base_modelo)
+
+summary(modelo2)
+
+saveRDS(modelo2, "results/modelo_lm_bandeira.rds")
+
+Ao analisar o consumo agregado (Indústria + Comércio + Residência), o modelo apresenta falhas conceituais graves. A temperatura perde significância estatística (p > 0.05) e as bandeiras tarifárias apresentam correlação positiva com o consumo, sugerindo falsamente que preços mais altos aumentam a demanda. Isso ocorre porque o 'ruído' do consumo industrial mascara o comportamento das famílias. Isso justifica a necessidade de segregar a análise por classe de consumo.
+
+BLOCO 9
