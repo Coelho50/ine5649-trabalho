@@ -1,0 +1,1 @@
+#analise de possiveis previsoes serao feitas aqui
